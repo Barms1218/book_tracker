@@ -110,3 +110,27 @@ func TestAddBook(t *testing.T) {
 		})
 	}
 }
+
+func GetBookByTitleTest(t *testing.T) {
+	type testCase struct {
+		name          string
+		title         string
+		expectedBooks map[string]struct{}
+		wantErr       bool
+	}
+	getTestCases := []testCase{
+		{
+			name:  "Title not found",
+			title: "Ready Player One",
+			expectedBooks: map[string]struct{
+				"Ready Player One": {
+					Title:   "Ready Player One",
+					Author:  "Ernest Cline",
+					OpenID:  "12345",
+					User_id: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+}
