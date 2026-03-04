@@ -65,6 +65,14 @@ func TestAddBook(t *testing.T) {
 			user_id: 1,
 			wantErr: true,
 		},
+		{
+			name:    "No User Found",
+			title:   "The Hobbit",
+			author:  "J.R.R Tolkien",
+			openID:  "12345",
+			user_id: 1,
+			wantErr: true,
+		},
 	}
 
 	for _, tc := range addTestCases {
@@ -73,7 +81,9 @@ func TestAddBook(t *testing.T) {
 			defer db.Close()
 
 			// Create test user
-			db.AddUser("Test User")
+			if tc.name != "No User Found" {
+				db.AddUser("Test User")
+			}
 
 			if tc.name == "Duplicate OpenID" {
 				_, err := db.AddBook(tc.title, tc.author, tc.openID, tc.user_id)

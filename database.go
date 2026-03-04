@@ -98,3 +98,43 @@ func (d *Database) AddUser(name string) (int64, error) {
 
 	return id, nil
 }
+
+func (d *Database) GetBookByTitle(title string) (Book, error) {
+	var b Book
+	query := "SELECT id, title, author, openID, user_id FROM books where title = ?"
+	if err := d.db.QueryRow(query, title).Scan(&b.ID, &b.Title, &b.Author, &b.OpenID, &b.User_id); err != nil {
+		if err == sql.ErrNoRows {
+			return Book{}, fmt.Errorf("No book found with title: %s", title)
+		}
+		return Book{}, err
+	}
+	return b, nil
+}
+
+func (d *Database) GetBooksByUser(name string) ([]Book, error) {
+	query := `SELECT id, title, author, openID, user_id 
+	FROM books b 
+	JOIN users u ON b.user_id = u.id
+	where u.name = ?`
+
+	rows, err := d.db.Query(query, name)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var books []Book
+
+	for rows.Next() {
+		var b Book
+		if err := rows.Scan(&b.ID, &b.Title, &b.Author, &b.OpenID, &b.User_id); err != nil {
+			return nil, err
+		}
+		books = append(books, b)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return books, nil
+}
