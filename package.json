@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "tree-sitter-html": "^0.23.2"
+  }
+}

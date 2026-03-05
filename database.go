@@ -155,3 +155,24 @@ func (d *Database) SearchUserBooks(name string) ([]Book, error) {
 	}
 	return books, nil
 }
+
+func (d *Database) DeleteBook(id int64) error {
+	query := "DELETE FROM books WHERE id = ?"
+
+	result, err := d.db.Exec(query, id)
+	if err != nil {
+		return fmt.Errorf("Error enountered deleting with id %d: %w", id, err)
+	}
+
+	count, _ := result.RowsAffected()
+	if count == 0 {
+		return fmt.Errorf("No book found with id %d", id)
+	}
+
+	return nil
+}
+
+func (d *Database) UpdateBook(id int64, oldString, newString string) error {
+
+	return nil
+}

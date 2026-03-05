@@ -112,7 +112,7 @@ func TestAddBook(t *testing.T) {
 	}
 }
 
-func GetBookByTitleTest(t *testing.T) {
+func SearchBooksTest(t *testing.T) {
 	type testCase struct {
 		name           string
 		searchTerm     string
@@ -191,6 +191,61 @@ func GetBookByTitleTest(t *testing.T) {
 					t.Fatalf("Book not containing search term was returned.")
 				}
 			}
+		})
+	}
+}
+
+func DeleteBookTest(t testing.T) {
+	type TestCase struct {
+		name          string
+		seededBooks   []Book
+		expectedCount int
+		wantErr       bool
+	}
+
+	testCases := []TestCase{
+		{
+			name: "Happy Path",
+			seededBooks: []Book{
+				Book{Title: "The Lord of the Flies", Author: "William Golding", OpenID: "1"},
+				Book{Title: "The Hobbit", Author: "J.R.R Tolkien", OpenID: "2"},
+				Book{Title: "Lord of the Clans", Author: "Christie Golden", OpenID: "3"},
+			},
+			wantErr: false,
+		},
+		{
+			name:        "Delete Non-Existant Book",
+			seededBooks: []Book{},
+			wantErr:     true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			db := SetupTestDB(t)
+			defer db.Close()
+
+			var book Book
+
+			user_id, err := db.AddUser("Test User")
+			if err != nil {
+				t.Fatalf("Error encountered adding user: %v", err)
+			}
+			if len(tc.seededBooks) > 0 {
+				for _, book := range tc.seededBooks {
+					book, err = db.AddBook(book.Title, book.Author, book.OpenID, user_id)
+					if err != nil {
+						t.Fatalf("Error encountered adding book: %v", err)
+					}
+				}
+			} else {
+				book = Book{ID: 1, Title: "Test", Author: "Test", OpenID: "1", User_id: 1}
+			}
+			err = db.DeleteBook(book.ID)
+			if tc.wantErr != (err != nil) {
+				t.Fatalf("Expected error: %v, got error %v", tc.wantErr, err)
+			}
+
 		})
 	}
 }
