@@ -54,7 +54,7 @@ func (d *Database) CreateUserTable() error {
 	return nil
 }
 
-func (d *Database) AddBook(title, author, openID string, user_id int) (Book, error) {
+func (d *Database) AddBook(title, author, openID string, user_id int64) (Book, error) {
 	if strings.TrimSpace(title) == "" {
 		return Book{}, errors.New("Book title cannot be empty")
 	}

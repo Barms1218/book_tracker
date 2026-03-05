@@ -5,7 +5,7 @@ type Book struct {
 	Title   string
 	Author  string
 	OpenID  string
-	User_id int
+	User_id int64
 }
 
 type User struct {
