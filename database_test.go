@@ -113,24 +113,43 @@ func TestAddBook(t *testing.T) {
 
 func GetBookByTitleTest(t *testing.T) {
 	type testCase struct {
-		name          string
-		title         string
-		expectedBooks map[string]struct{}
-		wantErr       bool
+		name           string
+		searchTerm     string
+		expectedTitles []string
 	}
 	getTestCases := []testCase{
 		{
-			name:  "Title not found",
-			title: "Ready Player One",
-			expectedBooks: map[string]struct{
-				"Ready Player One": {
-					Title:   "Ready Player One",
-					Author:  "Ernest Cline",
-					OpenID:  "12345",
-					User_id: 1,
-				},
+			name:       "All Results Contain King",
+			searchTerm: "King",
+			expectedTitles: []string{
+				"The Return of the King",
+				"Kingfisher",
+				"The Shining",
+				"The Wicked King",
 			},
-			wantErr: true,
+		},
+		{
+			name:           "Search With Gibberish",
+			searchTerm:     "Xyjasdfkl",
+			expectedTitles: []string{},
+		},
+		{
+			name:       "Limit Results to 10",
+			searchTerm: "The",
+			expectedTitles: []string{
+				"The Hobbit",
+				"The Fellowship of the Ring",
+				"The Two Towers",
+				"The Return of the King",
+				"The Shining",
+				"The Wicked King",
+				"Theo of Golden",
+				"The Intruder",
+				"The Giver",
+				"The Friend of the Family",
+				"The Will of the Many",
+				"The Light of All That Falls",
+			},
 		},
 	}
 }

@@ -99,10 +99,13 @@ func (d *Database) AddUser(name string) (int64, error) {
 	return id, nil
 }
 
-func (d *Database) GetBooksByTitle(title string) ([]Book, error) {
-	searchTerm := "%" + title + "%"
-	query := "SELECT id, title, author, openID, user_id FROM books where title LIKE ?"
-	rows, err := d.db.Query(query, searchTerm)
+func (d *Database) SearchBooks(term string) ([]Book, error) {
+	searchTerm := "%" + term + "%"
+	query := `SELECT id, title, author, openID, user_id 
+	FROM books 
+	WHERE title LIKE ? OR author LIKE ?
+	LIMIT 10`
+	rows, err := d.db.Query(query, searchTerm, searchTerm)
 
 	if err != nil {
 		return nil, err
@@ -125,7 +128,7 @@ func (d *Database) GetBooksByTitle(title string) ([]Book, error) {
 
 }
 
-func (d *Database) GetBooksByUser(name string) ([]Book, error) {
+func (d *Database) SearchUserBooks(name string) ([]Book, error) {
 	query := `SELECT b.id, b.title, b.author, b.openID, b.user_id 
 	FROM books b 
 	JOIN users u ON b.user_id = u.id
