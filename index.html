@@ -5,5 +5,34 @@
 	<title>My Book Tracker</title>
 <style>
 body { font-family: sans-serif; margin: 40px, line-height: 1.6; }
-
+.book-card{ border: 1px, solid #ddd; padding: 10px; margin: 10px 0; border-radius: 4px }
+.delete-btn { color: red; cursor: pointer; background: none; border: none; text-decoration: underline; }
 </style>
+<body>
+	<h1>Book Tracker</h1>
+
+	<form action="/search" method="GET">
+		<input type="text" name="term" placeholder="Search by title or author..." required>
+		<button type="submit">Search</button>
+	</form>
+</head>
+<body>
+
+	<hr>
+
+	<h2>Results</h2>
+
+	{{if .}}
+	{{range .}}
+	<div class="book-card">
+		<strong>{{.Title}}</strong> by {{.Author}} <br>
+		<small>ID: {{.ID}}</small>
+
+		<form action="/delete" method="POST" style="display:inline;">
+			<input type="hidden" name="id" value="{{.ID}}">
+			<button type="submit" class="delete-btn">Delete</button>
+		</form>
+	</div>
+	{{end}}
+	<p>No books found or no search performed yet</p>
+	{{end}}

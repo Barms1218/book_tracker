@@ -8,16 +8,22 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World!")
+type App struct {
+	DB   Database
+	Tmpl *template.Template
 }
 
-func (d *Database) SearchHandler(w http.ResponseWriter, r *http.Request) {
+func (a *App) IndexHandler(w http.ResponseWriter, r *http.Request) {
+	a.Tmpl.Execute(w, nil)
+}
+
+func (a *App) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	term := r.URL.Query().Get("term")
 
-	results, err := d.SearchBooks(term)
+	results, err := a.DB.SearchBooks(term)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -27,7 +33,20 @@ func (d *Database) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, results)
 }
 
-func (d *Database) AddBookHandler(w http.ResponseWriter, r *http.Request) {
+func (a *App) DeleteBookHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the id from the form
+	idStr := r.FormValue("id")
+	id, _ := strconv.ParseInt(idStr, 10, 64)
+
+	err := a.DB.DeleteBook(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (a *App) AddBookHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -40,9 +59,9 @@ func (d *Database) AddBookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = d.AddUser(newUser.Username)
+	_, err = a.DB.AddUser(newUser.Username)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Database errro: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("App errro: %v", err), http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
@@ -50,17 +69,23 @@ func (d *Database) AddBookHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	db, err := sql.Open("sqlite3", "/data/book_database.db")
+	dbConn, err := sql.Open("sqlite3", "./book_database.db")
 
-	app := &Database{db: db}
 	if err != nil {
 		log.Fatal(err)
 	}
+	db := Database{db: dbConn}
 	defer db.Close()
 
+	db.CreateBookTable()
+	db.CreateUserTable()
 	fmt.Println("Database connection successful!")
 
-	http.HandleFunc("/", handler)
+	tmpl := template.Must(template.ParseFiles("index.html"))
+
+	app := App{DB: db, Tmpl: tmpl}
+
+	http.HandleFunc("/", app.IndexHandler)
 	http.HandleFunc("/search", app.SearchHandler)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
