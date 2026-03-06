@@ -1,38 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<title>My Book Tracker</title>
-<style>
-body { font-family: sans-serif; margin: 40px, line-height: 1.6; }
-.book-card{ border: 1px, solid #ddd; padding: 10px; margin: 10px 0; border-radius: 4px }
-.delete-btn { color: red; cursor: pointer; background: none; border: none; text-decoration: underline; }
-</style>
-<body>
-	<h1>Book Tracker</h1>
-
-	<form action="/search" method="GET">
-		<input type="text" name="term" placeholder="Search by title or author..." required>
-		<button type="submit">Search</button>
-	</form>
+    <meta charset="UTF-8">
+    <title>My Book Tracker</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; line-height: 1.6; }
+        .book-card { border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .delete-btn { color: red; cursor: pointer; background: none; border: none; text-decoration: underline; }
+        .flex-container { display: flex; gap: 20px; }
+        .column { flex: 1; }
+    </style>
 </head>
 <body>
+    <h1>Book Tracker</h1>
 
-	<hr>
+    <form action="/search" method="GET">
+        <input type="text" name="term" placeholder="Search Open Library..." required>
+        <button type="submit">Search</button>
+    </form>
 
-	<h2>Results</h2>
+    <hr>
 
-	{{if .}}
-	{{range .}}
-	<div class="book-card">
-		<strong>{{.Title}}</strong> by {{.Author}} <br>
-		<small>ID: {{.ID}}</small>
+    <div class="flex-container">
+        <div class="column">
+            <h2>Search Results</h2>
+            {{range .SearchResults}}
+            <div class="book-card">
+                <strong>{{.Title}}</strong> by {{.Author}} <br>
+                <form action="/add" method="POST" style="display:inline;">
+                    <input type="hidden" name="title" value="{{.Title}}">
+                    <input type="hidden" name="author" value="{{.Author}}">
+                    <input type="hidden" name="openid" value="{{.OpenID}}">
+                    <button type="submit">Add to Collection</button>
+                </form>
+            </div>
+            {{else}}
+            <p>Search for a book to see results here.</p>
+            {{end}}
+        </div>
 
-		<form action="/delete" method="POST" style="display:inline;">
-			<input type="hidden" name="id" value="{{.ID}}">
-			<button type="submit" class="delete-btn">Delete</button>
-		</form>
-	</div>
-	{{end}}
-	<p>No books found or no search performed yet</p>
-	{{end}}
+        <div class="column">
+            <h2>My Collection</h2>
+            {{range .SavedBooks}}
+            <div class="book-card">
+                <strong>{{.Title}}</strong> by {{.Author}} <br>
+                <small>DB ID: {{.ID}}</small>
+                <form action="/delete" method="POST" style="display:inline;">
+                    <input type="hidden" name="id" value="{{.ID}}">
+                    <button type="submit" class="delete-btn">Delete</button>
+                </form>
+            </div>
+            {{else}}
+            <p>Your collection is empty.</p>
+            {{end}}
+        </div>
+    </div>
+</body>
+</html>

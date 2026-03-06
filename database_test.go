@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func SetupTestDB(t *testing.T) *App {
+func SetupTestDB(t *testing.T) *Database {
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatalf("Failed to open in-memory db: %v", err)
@@ -18,7 +18,7 @@ func SetupTestDB(t *testing.T) *App {
 		t.Fatalf("Failed to enable foreign keys: %v", err)
 	}
 
-	d := &App{db: db}
+	d := &Database{db: db}
 
 	if err := d.CreateUserTable(); err != nil {
 		t.Fatalf("Failed to create user table: %v", err)

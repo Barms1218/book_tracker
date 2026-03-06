@@ -83,7 +83,7 @@ func (d *Database) AddBook(title, author, openID string, user_id int64) (Book, e
 }
 
 func (d *Database) AddUser(name string) (int64, error) {
-	query := "INSERT INTO users (name) values (?);"
+	query := "INSERT OR IGNORE `INTO users (id, name) values (1, ?);"
 
 	result, insertErr := d.db.Exec(query, name)
 
@@ -128,13 +128,10 @@ func (d *Database) SearchBooks(term string) ([]Book, error) {
 
 }
 
-func (d *Database) SearchUserBooks(name string) ([]Book, error) {
-	query := `SELECT b.id, b.title, b.author, b.openID, b.user_id 
-	FROM books b 
-	JOIN users u ON b.user_id = u.id
-	where u.name = ?`
+func (d *Database) SearchUserBooks(userID int64) ([]Book, error) {
+	query := `SELECT title, author, openID FROM books WHERE user_id = ?`
 
-	rows, err := d.db.Query(query, name)
+	rows, err := d.db.Query(query, userID)
 
 	if err != nil {
 		return nil, err
