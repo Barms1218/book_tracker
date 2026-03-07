@@ -40,7 +40,7 @@
         </div>
 
         <div class="column">
-            <h2>My Collection</h2>
+            <h2>My Collection ({{.CollectionSize}} Books)</h2>
             {{range .SavedBooks}}
             <div class="book-card">
                 <strong>{{.Title}}</strong> by {{.Author}} <br>

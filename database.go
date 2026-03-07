@@ -61,7 +61,7 @@ func (d *Database) AddBook(title, author, openID string, user_id int64) (Book, e
 	if strings.TrimSpace(author) == "" {
 		return Book{}, errors.New("Book author cannot be empty.")
 	}
-	query := `INSERT INTO books (title, author, openID, user_id) VALUES (?, ?, ?, ?);`
+	query := `INSERT OR IGNORE INTO books (title, author, openID, user_id) VALUES (?, ?, ?, ?);`
 
 	result, insertErr := d.db.Exec(query, title, author, openID, user_id)
 
@@ -129,7 +129,8 @@ func (d *Database) SearchBooks(term string) ([]Book, error) {
 }
 
 func (d *Database) SearchUserBooks(userID int64) ([]Book, error) {
-	query := `SELECT title, author, openID FROM books WHERE user_id = ?`
+	// Align query and scan or it will fail
+	query := `SELECT id, title, author, openID, user_id FROM books WHERE user_id = ?`
 
 	rows, err := d.db.Query(query, userID)
 

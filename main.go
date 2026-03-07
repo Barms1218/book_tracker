@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 type App struct {
@@ -18,8 +19,9 @@ type App struct {
 }
 
 type SearchPage struct {
-	SearchResults []Book
-	SavedBooks    []Book
+	SearchResults  []Book
+	SavedBooks     []Book
+	CollectionSize int
 }
 
 func (a *App) IndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -28,9 +30,11 @@ func (a *App) IndexHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("DEBUG: Loaded %d books for the 'My Collection' section", len(localResults))
 
 	data := SearchPage{
-		SearchResults: nil,
-		SavedBooks:    localResults,
+		SearchResults:  nil,
+		SavedBooks:     localResults,
+		CollectionSize: len(localResults),
 	}
+
 	a.Tmpl.Execute(w, data)
 }
 
@@ -49,8 +53,9 @@ func (a *App) SearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	localResults, _ := a.DB.SearchUserBooks(1)
 	data := SearchPage{
-		SearchResults: results,
-		SavedBooks:    localResults,
+		SearchResults:  results,
+		SavedBooks:     localResults,
+		CollectionSize: len(localResults),
 	}
 
 	err = a.Tmpl.Execute(w, data)
@@ -84,8 +89,12 @@ func (a *App) AddBookHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Handler received: Title=%s, Author=%s, OpenID=%s", title, author, openID)
 	_, err := a.DB.AddBook(title, author, openID, 1)
 	if err != nil {
+		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
 		log.Printf("Database insertion error: %v", err)
-		http.Error(w, "Failed to save book.", http.StatusInternalServerError)
+		http.Error(w, "Failed to save book due to error: %v.", http.StatusInternalServerError)
 		return
 	}
 
@@ -155,5 +164,7 @@ func main() {
 
 	http.HandleFunc("/", app.IndexHandler)
 	http.HandleFunc("/search", app.SearchHandler)
+	http.HandleFunc("/delete", app.DeleteBookHandler)
+	http.HandleFunc("/add", app.AddBookHandler)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
