@@ -1,0 +1,8 @@
+# Book Tracker
+A Go-based book tracking application.
+
+## How to Run (Docker)
+1. **Create a data folder:** `mkdir data`
+2. **Build the image:** `docker build -t book-tracker .`
+3. **Run the container:** `docker run -p 8080:8080 -v $(pwd)/data:/data book-tracker`
+4. **Access the app:** Open `http://localhost:8080` in your browser.

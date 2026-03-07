@@ -29,6 +29,7 @@ func (d *Database) CreateBookTable() error {
 		title TEXT NOT NULL,
 		author TEXT,
 		openID TEXT UNIQUE NOT NULL,
+		readingStatus TEXT NOT NULL,
 		user_id INTEGER,
 		FOREIGN KEY(user_id) REFERENCES users(id)
 	);`
@@ -56,6 +57,21 @@ func (d *Database) CreateUserTable() error {
 	return nil
 }
 
+func (d *Database) CreateJournalTable() error {
+	query := `CREATE IF NOT EXISTS TABLE journal_entries (
+		id INTEGER PRIMARY KEY
+		content TEXT,
+		book_id INTEGER,
+		FOREIGN KEY(book_id) REFERENCES books(id) ON DELETE CASCADE
+	);`
+
+	_, err := d.db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("Error creating journal entries table: %v", err)
+	}
+
+	return nil
+}
 func (d *Database) AddBook(title, author, openID string, user_id int64) (Book, error) {
 	if strings.TrimSpace(title) == "" {
 		return Book{}, errors.New("Book title cannot be empty")
@@ -63,9 +79,9 @@ func (d *Database) AddBook(title, author, openID string, user_id int64) (Book, e
 	if strings.TrimSpace(author) == "" {
 		return Book{}, errors.New("Book author cannot be empty.")
 	}
-	query := `INSERT OR IGNORE INTO books (title, author, openID, user_id) VALUES (?, ?, ?, ?);`
+	query := `INSERT OR IGNORE INTO books (title, author, openID, readinStatus, user_id) VALUES (?, ?, ?, 'TBR', ?);`
 
-	result, insertErr := d.db.Exec(query, title, author, openID, user_id)
+	result, insertErr := d.db.Exec(query, title, author, openID, "TBR", user_id)
 
 	if insertErr != nil {
 		return Book{}, insertErr
@@ -76,11 +92,12 @@ func (d *Database) AddBook(title, author, openID string, user_id int64) (Book, e
 		return Book{}, insertErr
 	}
 	return Book{
-		ID:      id,
-		Title:   title,
-		Author:  author,
-		OpenID:  openID,
-		User_id: user_id,
+		ID:            id,
+		Title:         title,
+		Author:        author,
+		OpenID:        openID,
+		ReadingStatus: "TBR",
+		User_id:       user_id,
 	}, nil
 }
 
