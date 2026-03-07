@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"log"
 	"strings"
 )
 
@@ -48,6 +49,7 @@ func (d *Database) CreateUserTable() error {
 
 	_, err := d.db.Exec(createQuery)
 	if err != nil {
+		log.Printf("Error seeding user table: %v", err)
 		return fmt.Errorf("Error creating user table: %w", err)
 	}
 
@@ -83,7 +85,7 @@ func (d *Database) AddBook(title, author, openID string, user_id int64) (Book, e
 }
 
 func (d *Database) AddUser(name string) (int64, error) {
-	query := "INSERT OR IGNORE `INTO users (id, name) values (1, ?);"
+	query := "INSERT OR IGNORE INTO users (id, name) values (1, ?);"
 
 	result, insertErr := d.db.Exec(query, name)
 

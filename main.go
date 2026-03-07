@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -94,7 +95,7 @@ func (a *App) AddBookHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.Printf("Database insertion error: %v", err)
-		http.Error(w, "Failed to save book due to error: %v.", http.StatusInternalServerError)
+		http.Error(w, "Failed to save book.", http.StatusInternalServerError)
 		return
 	}
 
@@ -141,7 +142,11 @@ func FetchFromOpenLibrary(query string) ([]Book, error) {
 }
 
 func main() {
-	dbConn, err := sql.Open("sqlite3", "./book_database.db")
+	dbPath := os.Getenv("DATABASE_URL")
+	if dbPath == "" {
+		dbPath = "data/book_database.db" // Use local path as a backup
+	}
+	dbConn, err := sql.Open("sqlite3", dbPath)
 
 	if err != nil {
 		log.Fatal(err)
@@ -151,8 +156,12 @@ func main() {
 
 	_, _ = dbConn.Exec("PRAGMA foreign_keys = ON;")
 
-	db.CreateBookTable()
-	db.CreateUserTable()
+	if err = db.CreateUserTable(); err != nil {
+		log.Fatalf("Could not create user table: %v", err)
+	}
+	if err = db.CreateBookTable(); err != nil {
+		log.Fatalf("Could not create book table: %v", err)
+	}
 
 	db.AddUser("Branden")
 
